@@ -1,16 +1,4 @@
 #!/usr/bin/env python3
-"""
-web_app.py (Pi)
-
-- Periodically reads BH1750 (light), BMP280 (temp), ADS1115+soil probe (moisture)
-- Logs readings to CSVs in ./data/
-- Captures a photo with rpicam-still and sends it to a remote
-  inference server (running on laptop) using infer_leaf_binary.remote_infer
-- Serves a simple Flask dashboard with:
-    * 4 status indicators
-    * 3 separate graphs (light, temp, moisture)
-    * "Update now" button (forces an immediate reading + photo + inference)
-"""
 
 import csv
 import datetime as dt
@@ -65,7 +53,10 @@ def now_utc() -> dt.datetime:
 def timestamp_str(ts: dt.datetime | None = None) -> str:
     if ts is None:
         ts = now_utc()
-    return ts.isoformat()
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=dt.timezone.utc)
+    ts = ts.astimezone(dt.timezone.utc)
+    return ts.isoformat(timespec="seconds")
 
 def append_csv(path: Path, ts: dt.datetime, value: float) -> None:
     new_file = not path.exists()
